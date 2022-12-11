@@ -1,6 +1,7 @@
 use sled::Db;
 
 pub fn print_todos(db: &Db) {
+    println!("Your tasks:");
     db.iter().for_each(|todo_item| match todo_item {
         Ok((key, value)) => {
             let key = String::from_utf8(key.to_vec()).unwrap();
@@ -21,7 +22,7 @@ pub fn add_todo(db: &Db, todo: String) {
             key + 1
         })
         .last()
-        .unwrap_or(0);
+        .unwrap_or(1);
 
     // Insert task into database
     db.insert(key.to_string(), &*todo)

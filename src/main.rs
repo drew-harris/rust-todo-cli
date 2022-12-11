@@ -1,6 +1,7 @@
 use crate::todos::*;
 use clap::Parser;
 use sled::Db;
+
 mod todos;
 
 #[derive(clap::Subcommand)]
@@ -23,7 +24,6 @@ struct Arguments {
 
 fn main() {
     let db: Db = sled::open("todos_db").expect("could not get database");
-
     let args: Arguments = Arguments::parse();
 
     match args.action {
