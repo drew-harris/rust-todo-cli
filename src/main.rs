@@ -28,15 +28,14 @@ fn main() {
         Action::Remove => println!("remove"),
         Action::Complete => println!("complete"),
         Action::View => {
-            let todos = db
-                .iter()
-                .map(|item| item.expect("could not get item"))
-                .map(|item| {
-                    String::from_utf8(item.1.to_vec()).expect("could not convert to string")
-                })
-                .collect::<Vec<String>>();
-
-            println!("todos: {:?}", todos);
+            db.iter().for_each(|todo_item| match todo_item {
+                Ok((key, value)) => {
+                    let key = String::from_utf8(key.to_vec()).unwrap();
+                    let value = String::from_utf8(value.to_vec()).unwrap();
+                    println!("{}: {}", key, value);
+                }
+                Err(e) => println!("error: {}", e),
+            });
         }
 
         Action::Add { task } => {
