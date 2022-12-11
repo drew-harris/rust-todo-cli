@@ -1,16 +1,18 @@
+use crate::todos::*;
 use clap::Parser;
 use sled::Db;
+mod todos;
 
 #[derive(clap::Subcommand)]
 enum Action {
-    Remove,
-    Complete,
+    #[clap(about = "Remove a task")]
+    Remove { key: u64 },
+
+    #[clap(about = "View all tasks")]
     View,
 
     #[clap(about = "Add a new task")]
-    Add {
-        task: String,
-    },
+    Add { task: String },
 }
 
 #[derive(Parser)]
@@ -25,34 +27,19 @@ fn main() {
     let args: Arguments = Arguments::parse();
 
     match args.action {
-        Action::Remove => println!("remove"),
-        Action::Complete => println!("complete"),
-        Action::View => {
-            db.iter().for_each(|todo_item| match todo_item {
-                Ok((key, value)) => {
-                    let key = String::from_utf8(key.to_vec()).unwrap();
-                    let value = String::from_utf8(value.to_vec()).unwrap();
-                    println!("{}: {}", key, value);
-                }
-                Err(e) => println!("error: {}", e),
-            });
+        Action::Remove { key } => {
+            match remove_todo(&db, key) {
+                Ok(_) => println!("removed task {}", key),
+                Err(e) => println!("{}", e),
+            }
+            print_todos(&db);
         }
-
+        Action::View => {
+            print_todos(&db);
+        }
         Action::Add { task } => {
-            let key = db
-                .iter()
-                .map(|item| {
-                    let key = item.expect("could not get key").0;
-                    let key = String::from_utf8(key.to_vec()).expect("could not convert to string");
-                    let key = key.parse::<u64>().expect("could not parse key");
-                    key + 1
-                })
-                .last()
-                .unwrap_or(0);
-
-            // Insert task into database
-            db.insert(key.to_string(), &*task)
-                .expect("could not insert task");
+            add_todo(&db, task);
+            print_todos(&db);
         }
     }
 }
